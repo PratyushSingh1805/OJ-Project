@@ -53,7 +53,8 @@ def login_user(request):
         login(request,user)
         messages.info(request,'login successful')
 
-        return redirect('/auth/login')
+        return redirect('/problems/')
+        #return redirect('/auth/login')
         #return redirect('/home/polls/')
     
     template = loader.get_template('login.html')

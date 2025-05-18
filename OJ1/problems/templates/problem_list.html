@@ -1,0 +1,6 @@
+<h2>Problem List</h2>
+<ul>
+  {% for problem in problems %}
+    <li><a href="{% url 'problem-detail' problem.pk %}">{{ problem.title }}</a> - {{ problem.difficulty }}</li>
+  {% endfor %}
+</ul>
