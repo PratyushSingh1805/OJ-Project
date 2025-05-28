@@ -1,3 +1,11 @@
-<h2>Submission Result</h2>
-<p><strong>Your Output:</strong></p>
-<pre>{{ submission.output_data }}</pre>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Verdict: {{ verdict }}</h2>
+<h3>Test Case Results:</h3>
+<ol>
+{% for v, o in results %}
+    <li><strong>{{ v }}</strong><br>Output: {{ o }}</li>
+{% endfor %}
+</ol>
+<a href="{% url 'problem-detail' problem.id %}">Back to Problem</a>
+{% endblock %}

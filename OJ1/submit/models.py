@@ -16,5 +16,9 @@ class Submission(models.Model):
     code = models.TextField()
     input_data = models.TextField(blank=True)
     output_data = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    verdict = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.problem.title} - {self.verdict}"
 
