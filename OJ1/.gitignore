@@ -8,3 +8,10 @@ env/
 ENV/
 env.bak/
 venv.bak/
+
+*.py[cod]
+
+*.env
+*.log
+*.sqlite3
+*.egg-info/
