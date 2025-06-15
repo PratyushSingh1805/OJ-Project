@@ -4,6 +4,13 @@ from pathlib import Path
 from django.conf import settings
 
 def run_code(language, code, test_cases):
+    language = language.lower()
+    if language in ["py", "python"]:
+        extension = "py"
+    elif language == "cpp":
+        extension = "cpp"
+    else:
+        return "Unsupported Language", []
     base_dir = Path(settings.BASE_DIR)
     codes_dir = base_dir / "codes"
     inputs_dir = base_dir / "inputs"
@@ -13,7 +20,7 @@ def run_code(language, code, test_cases):
         dir_.mkdir(exist_ok=True)
 
     uid = str(uuid.uuid4())
-    code_file = codes_dir / f"{uid}.{language}"
+    code_file = codes_dir / f"{uid}.{extension}"
     executable = codes_dir / uid  # for C++
 
     code_file.write_text(code)
@@ -37,7 +44,7 @@ def run_code(language, code, test_cases):
         expected_output = test_case.expected_output.strip()
 
         try:
-            if language == "py":
+            if language in ["py", "python"]:
                 with open(input_file, "r") as stdin, open(output_file, "w") as stdout:
                     subprocess.run(["python", str(code_file)], stdin=stdin, stdout=stdout, stderr=subprocess.DEVNULL, timeout=5)
 

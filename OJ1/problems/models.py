@@ -1,5 +1,11 @@
 from django.db import models
 
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
 # Create your models here.
 class Problem(models.Model):
     DIFFICULTY_CHOICES = [
@@ -16,7 +22,8 @@ class Problem(models.Model):
     sample_input = models.TextField()
     sample_output = models.TextField()
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
-    tags = models.CharField(max_length=100)
+    #tags = models.CharField(max_length=100)
+    tags = models.ManyToManyField(Tag, blank=True)
 
     def __str__(self):
         return self.title

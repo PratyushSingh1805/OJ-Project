@@ -17,6 +17,7 @@ def submit_code(request, problem_id):
     problem = get_object_or_404(Problem, id=problem_id)
     
     if request.method == "POST":
+        #print("POST DATA:", request.POST.dict())
         form = CodeSubmissionForm(request.POST)
         if form.is_valid():
             submission = form.save(commit=False)
@@ -43,6 +44,8 @@ def submit_code(request, problem_id):
             context = {'verdict': verdict, 'results': results, 'problem': problem}
             #context = {'submission': submission}
             return HttpResponse(template.render(context, request))
+        else:
+            print("Form errors:", form.errors)  # TEMP: log errors
     else:
         form = CodeSubmissionForm()
 
@@ -74,4 +77,161 @@ def leaderboard(request):
     return HttpResponse(template.render(context, request))
     #return render(request, 'submit/leaderboard.html', {'leaderboard': leaderboard_data})
 
+
+import os
+import json
+import tempfile
+import subprocess
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+
+@csrf_exempt
+@login_required
+def run_code_ajax(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        code = data.get('code', '')
+        language = data.get('language', 'python')
+        custom_input = data.get('custom_input', '')
+
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.py' if language in ['py','python'] else '.cpp') as temp_code_file:
+                temp_code_file.write(code.encode())
+                temp_code_file.flush()
+                temp_code_path = temp_code_file.name
+
+            if language in ['py','python']:
+                result = subprocess.run(
+                    ['python', temp_code_path],
+                    input=custom_input.encode(),
+                    capture_output=True,
+                    timeout=5
+                )
+            else:  # C++
+                compiled_path = temp_code_path.replace('.cpp', '')
+                subprocess.run(['g++', temp_code_path, '-o', compiled_path], check=True)
+                result = subprocess.run(
+                    [compiled_path],
+                    input=custom_input.encode(),
+                    capture_output=True,
+                    timeout=5
+                )
+
+            output = result.stdout.decode() + result.stderr.decode()
+        except Exception as e:
+            output = f"Error: {str(e)}"
+        finally:
+            if os.path.exists(temp_code_path):
+                os.remove(temp_code_path)
+            if language == 'cpp' and os.path.exists(compiled_path):
+                os.remove(compiled_path)
+
+        return JsonResponse({'output': output})
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+import json
+
+import google.generativeai as genai
+
+genai.configure(api_key=settings.GEMINI_API_KEY)
+
+@login_required
+@csrf_exempt
+def ai_review(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        code = data.get("code", "")
+
+        prompt = f"Review the following code and provide feedback:\n\n{code}"
+
+        try:
+            model = genai.GenerativeModel("models/gemini-1.5-flash-latest")
+            response = model.generate_content(prompt)
+            review = response.text
+        except Exception as e:
+            review = f"Error: {str(e)}"
+
+        return JsonResponse({'review': review})
+
+# # views.py
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# from django.contrib.auth.decorators import login_required
+# from django.utils.decorators import method_decorator
+# from django.conf import settings
+# from openai import OpenAI
+# import json
+
+# # Create OpenAI client using DeepSeek
+# client = OpenAI(
+#     api_key=settings.DEEPSEEK_API_KEY,
+#     base_url="https://api.deepseek.com/v1"  # DeepSeek uses OpenAI-compatible API
+# )
+
+# @csrf_exempt
+# @login_required
+# def ai_review(request):
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             code = data.get("code", "")
+#             prompt = f"Please review the following code and suggest improvements:\n\n{code}"
+
+#             response = client.chat.completions.create(
+#                 model="deepseek-chat",  # Or another model like "deepseek-coder"
+#                 messages=[
+#                     {"role": "system", "content": "You are a helpful code reviewer."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 max_tokens=500,
+#                 temperature=0.5,
+#             )
+
+#             review = response.choices[0].message.content.strip()
+#             return JsonResponse({'review': review})
+        
+#         except Exception as e:
+#             return JsonResponse({'review': f"Error: {str(e)}"})
+    
+#     return JsonResponse({'review': 'Invalid request method'}, status=400)
+
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# import json
+# import openai
+# from django.conf import settings
+
+# @login_required
+# @csrf_exempt
+# def ai_review(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         code = data.get("code", "")
+
+#         prompt = f"Please review the following code and suggest improvements:\n\n{code}"
+
+#         try:
+#             openai.api_key = settings.DEEPSEEK_API_KEY
+#             openai.api_base = "https://api.deepseek.com"
+
+#             response = openai.ChatCompletion.create(
+#                 model="deepseek-chat",
+#                 messages=[
+#                     {"role": "system", "content": "You are a helpful code reviewer."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 max_tokens=500,
+#                 temperature=0.5,
+#             )
+
+#             review = response['choices'][0]['message']['content'].strip()
+#         except Exception as e:
+#             review = f"Error: {str(e)}"
+
+#         return JsonResponse({'review': review})
 

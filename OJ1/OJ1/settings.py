@@ -26,7 +26,16 @@ SECRET_KEY = 'django-insecure-$6s^b01j+e21p4)5lql)rtanf2x(ftrlx$c(-a0790hky%v#b*
 DEBUG = True
 
 ALLOWED_HOSTS = []
+########
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
 # Application definition
 

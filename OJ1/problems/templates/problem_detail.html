@@ -1,12 +1,24 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>{{ problem.title }}</h2>
-<p><strong>Difficulty:</strong> {{ problem.difficulty }}</p>
-<p><strong>Description:</strong> {{ problem.description }}</p>
-<p><strong>Input Format:</strong> {{ problem.input_format }}</p>
-<p><strong>Output Format:</strong> {{ problem.output_format }}</p>
-<p><strong>Constraints:</strong> {{ problem.constraints }}</p>
-<p><strong>Sample Input:</strong> {{ problem.sample_input }}</p>
-<p><strong>Sample Output:</strong> {{ problem.sample_output }}</p>
-<a href="{% url 'submit_code' problem.id %}">Submit Solution</a>
+<div class="container mt-4">
+
+    <!-- Centered heading -->
+    <h2 class="text-center mb-4">{{ problem.title }}</h2>
+
+    <p><strong>Difficulty:</strong> {{ problem.difficulty }}</p>
+    <p><strong>Description:</strong> {{ problem.description }}</p>
+    <p><strong>Input Format:</strong> {{ problem.input_format }}</p>
+    <p><strong>Output Format:</strong> {{ problem.output_format }}</p>
+    <p><strong>Constraints:</strong> {{ problem.constraints }}</p>
+    <p><strong>Sample Input:</strong> {{ problem.sample_input }}</p>
+    <p><strong>Sample Output:</strong> {{ problem.sample_output }}</p>
+
+    <div class="mt-4">
+        <a href="{% url 'submit_code' problem.id %}" class="btn btn-primary px-4">
+            Submit Solution
+        </a>
+    </div>
+
+</div>
 {% endblock %}

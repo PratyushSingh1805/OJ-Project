@@ -1,9 +1,103 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
-<h1>Submit Code for: {{ problem.title }}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Run Code</button>
-</form>
+<h2>Submit Solution</h2>
+
+<div class="row">
+  <!-- Left Column: Code + Submit + AI Review -->
+  <div class="col-md-8">
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label>Language:</label>
+        <select id="language" name="language" class="form-select">
+          <option value="py">Python</option>
+          <option value="cpp">C++</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label>Code:</label>
+        <textarea id="code" name="code" class="form-control" rows="15">{{ code }}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+
+    <!-- AI Review Block -->
+    <h4 class="mt-5">AI Review</h4>
+    <button class="btn btn-info" onclick="reviewCode()">Get AI Review</button>
+    <div id="review-output" class="mt-3 text-wrap text-break"></div>
+  </div>
+
+  <!-- Right Column: Live Input/Output -->
+  <div class="col-md-4">
+    <h5 class="mb-3">Live Compiler</h5>
+
+    <div class="mb-3">
+      <label for="custom_input">Sample Input:</label>
+      <textarea id="custom_input" class="form-control" rows="6" placeholder="Enter input..."></textarea>
+    </div>
+
+    <div class="mb-3">
+      <button type="button" class="btn btn-success" onclick="runCode()">Run Code</button>
+    </div>
+
+    <div class="mb-3">
+      <label>Sample Output:</label>
+      <pre id="output-box" class="bg-light border p-3" style="min-height: 120px;"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+  function reviewCode() {
+    const code = document.getElementById("code").value;
+    const output = document.getElementById("review-output");
+    output.innerHTML = "Reviewing...";
+
+    fetch("{% url 'ai_review' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ code: code })
+    })
+    .then(response => response.json())
+    .then(data => {
+      output.innerHTML = `<pre>${data.review}</pre>`;
+    })
+    .catch(error => {
+      output.innerHTML = "Something went wrong.";
+    });
+  }
+
+  function runCode() {
+    const code = document.getElementById("code").value;
+    const language = document.getElementById("language").value;
+    const custom_input = document.getElementById("custom_input").value;
+    const outputBox = document.getElementById("output-box");
+
+    outputBox.innerText = "Running...";
+
+    fetch("{% url 'run_code_ajax' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ code, language, custom_input })
+    })
+    .then(response => response.json())
+    .then(data => {
+      outputBox.innerText = data.output;
+    })
+    .catch(error => {
+      outputBox.innerText = "Error while running code.";
+    });
+  }
+</script>
 {% endblock %}
+
