@@ -1,4 +1,5 @@
 venv/
+.vscode/
 __pycache__/
 *.pyc
 *.pyo
@@ -8,6 +9,12 @@ env/
 ENV/
 env.bak/
 venv.bak/
+__pycache__/
+*.pyc
+db.sqlite3
+*.sqlite3
+../.vscode/
+../venv/
 
 *.py[cod]
 .env
