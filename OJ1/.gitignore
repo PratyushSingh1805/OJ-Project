@@ -15,3 +15,6 @@ venv.bak/
 *.log
 *.sqlite3
 *.egg-info/
+codes/
+inputs/
+outputs/
