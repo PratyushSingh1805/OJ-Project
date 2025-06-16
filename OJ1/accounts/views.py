@@ -32,39 +32,72 @@ def register_user(request):
     return HttpResponse(template.render(context,request))
     
     
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.template import loader
+from django.http import HttpResponse
+from django.contrib.messages import get_messages
 
 def login_user(request):
+    # Clear old messages always
+    list(get_messages(request))
 
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
         if not User.objects.filter(username=username).exists():
-            messages.info(request,'User with this username does not exist')
-            return redirect('/auth/login/')
-        
+            messages.error(request, "User with this username does not exist")
+            return redirect("/auth/login/")
+
         user = authenticate(username=username, password=password)
-
         if user is None:
-            messages.info(request,'invalid password')
-            return redirect('/auth/login')
+            messages.error(request, "Invalid password")
+            return redirect("/auth/login/")
+
+        login(request, user)
+
+        return redirect("/problems/?logged_in=1")
+
+    elif request.method == "GET" and request.GET.get("logged_out") == "1":
+        messages.success(request, "Logged out successfully.")
+
+    template = loader.get_template("login.html")
+    return HttpResponse(template.render({}, request))
+
+# def login_user(request):
+
+#     if request.method == "POST":
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
+
+#         if not User.objects.filter(username=username).exists():
+#             messages.info(request,'User with this username does not exist')
+#             return redirect('/auth/login/')
+        
+#         user = authenticate(username=username, password=password)
+
+#         if user is None:
+#             messages.info(request,'invalid password')
+#             return redirect('/auth/login')
         
 
-        login(request,user)
-        messages.info(request,'login successful')
+#         login(request,user)
+#         messages.info(request,'login successful')
 
-        return redirect('/problems/')
-        #return redirect('/auth/login')
-        #return redirect('/home/polls/')
+#         return redirect('/problems/')
+#         #return redirect('/auth/login')
+#         #return redirect('/home/polls/')
     
-    template = loader.get_template('login.html')
-    context ={}
-    return HttpResponse(template.render(context,request))
+#     template = loader.get_template('login.html')
+#     context ={}
+#     return HttpResponse(template.render(context,request))
 
 def logout_user(request):
     logout(request)
-    messages.info(request,'logout successful')
-    return redirect('/auth/login/')
+    return redirect("/auth/login/?logged_out=1")
 
 from django.contrib.auth.decorators import login_required
 from submit.models import Submission

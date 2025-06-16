@@ -34,6 +34,17 @@ def submit_code(request, problem_id):
             #     problem.sample_output
             # )
             #submission.output_data = output
+            test_case_results = []
+            for i, test_case in enumerate(test_cases):
+                verdict_label, user_output = results[i]
+                test_case_results.append({
+                    'verdict': verdict_label,
+                    'passed': verdict_label == 'Accepted',
+                    'expected_output': test_case.expected_output.strip(),
+                    'user_output': user_output.strip(),
+                    'input_data': test_case.input_data.strip(),
+                    #'time': '—',  # You can add timing later if you measure it
+                })
             submission.verdict = verdict
             submission.output_data = "\n".join([f"{i+1}) {v}: {o}" for i, (v, o) in enumerate(results)])
             submission.save() 
@@ -41,7 +52,7 @@ def submit_code(request, problem_id):
             #submission.save()
             #return render(request, "submit/result.html", {"submission": submission})
             template = loader.get_template('result.html')
-            context = {'verdict': verdict, 'results': results, 'problem': problem}
+            context = {'verdict': verdict, 'results': results, 'problem': problem, 'test_cases': test_case_results,'submission': submission,}
             #context = {'submission': submission}
             return HttpResponse(template.render(context, request))
         else:

@@ -54,4 +54,58 @@ def problem_list(request):
         'tags': tags,
     })
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import ProblemForm
+from .models import Problem
+
+@login_required
+def add_problem(request):
+    if not request.user.is_staff and not request.user.userprofile.is_problem_setter:
+        return redirect('problem-list')  # or raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ProblemForm(request.POST)
+        if form.is_valid():
+            problem = form.save(commit=False)
+            problem.created_by = request.user
+            problem.save()
+            return redirect('problem-detail', pk=problem.pk)
+    else:
+        form = ProblemForm()
+    return render(request, 'problems/add_problem.html', {'form': form})
+
+@login_required
+def edit_problem(request, pk):
+    problem = get_object_or_404(Problem, pk=pk)
+
+    if request.user != problem.created_by and not request.user.is_staff:
+        return redirect('problem-detail', pk=problem.pk)  # or raise PermissionDenied
+
+    if request.method == 'POST':
+        form = ProblemForm(request.POST, instance=problem)
+        if form.is_valid():
+            form.save()
+            return redirect('problem-detail', pk=problem.pk)
+    else:
+        form = ProblemForm(instance=problem)
+
+    return render(request, 'problems/edit_problem.html', {'form': form, 'problem': problem})
+
+# @login_required
+# def edit_problem(request, pk):
+#     problem = get_object_or_404(Problem, pk=pk)
+
+#     if request.user != problem.created_by and not request.user.is_staff:
+#         return redirect('problem-list')  # or raise PermissionDenied
+
+#     if request.method == 'POST':
+#         form = ProblemForm(request.POST, instance=problem)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('problem-detail', pk=problem.pk)
+#     else:
+#         form = ProblemForm(instance=problem)
+
+#     return render(request, 'problems/edit_problem.html', {'form': form})
 

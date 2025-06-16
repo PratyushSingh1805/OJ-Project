@@ -32,7 +32,7 @@ def run_code(language, code, test_cases):
             stderr=subprocess.PIPE,
         )
         if compile.returncode != 0:
-            return "Compilation Error", compile.stderr.decode()
+            return "Compilation Error", [compile.stderr.decode()]
 
     results = []
 

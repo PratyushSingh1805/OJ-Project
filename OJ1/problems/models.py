@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -24,6 +24,7 @@ class Problem(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     #tags = models.CharField(max_length=100)
     tags = models.ManyToManyField(Tag, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='problems')
 
     def __str__(self):
         return self.title
