@@ -1,13 +1,7 @@
-# from django import forms
-# from .models import Problem, Tag
-
-# class ProblemForm(forms.ModelForm):
-#     class Meta:
-#         model = Problem
-#         fields = ['title', 'description']
-
 from django import forms
-from .models import Problem, Tag
+from .models import Problem, Tag, TestCase
+from django.forms.models import inlineformset_factory
+#from django.forms import modelformset_factory
 
 class ProblemForm(forms.ModelForm):
     tags = forms.CharField(required=False, help_text="Comma-separated tags")
@@ -45,3 +39,71 @@ class ProblemForm(forms.ModelForm):
                 tag, _ = Tag.objects.get_or_create(name=name)
                 instance.tags.add(tag)
         return instance
+
+class TestCaseForm(forms.ModelForm):
+    class Meta:
+        model = TestCase
+        fields = ['input_data', 'expected_output']
+        labels = {
+            'input_data': 'Input',
+            'expected_ouput': 'Expected Output'
+        }
+
+TestCaseFormSet = inlineformset_factory(
+    Problem, TestCase, form=TestCaseForm,
+    extra=1, can_delete=True
+)
+
+# TestCaseFormSet = inlineformset_factory(
+#     Problem, TestCase,
+#     fields=('input_data', 'expected_output'),
+#     extra=1,
+#     can_delete=True,
+#     widgets={
+#         'input_data': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+#         'expected_output': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+#     }
+# )  
+# # TestCaseFormSet = inlineformset_factory(
+#     Problem, TestCase,
+#     fields=('input_data', 'expected_output'),
+#     extra=1,
+#     can_delete=True
+# )
+# TestCaseFormSet = inlineformset_factory(
+#     Problem,
+#     TestCase,
+#     form=forms.ModelForm,
+#     fields=('input_data', 'expected_output'),
+#     extra=1,
+#     can_delete=True,
+#     widgets={
+#         'input_data': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#         'expected_output': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#     }
+# )
+# TestCaseFormSet = inlineformset_factory(
+#     Problem, TestCase,
+#     fields=('input_data', 'expected_output'),
+#     extra=1, can_delete=True,
+#     widgets={
+#         'input_data': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#         'expected_output': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#     }
+# )
+
+# class TestCaseForm(forms.ModelForm):
+#     class Meta:
+#         model = TestCase
+#         fields = ['input_data', 'expected_output']
+
+# TestCaseFormSet = inlineformset_factory(
+#     Problem, TestCase,
+#     form=TestCaseForm,
+#     extra=1,
+#     can_delete=True,
+#     widgets={
+#         'input_data': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#         'expected_output': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+#     }
+# )

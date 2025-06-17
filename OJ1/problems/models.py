@@ -24,7 +24,7 @@ class Problem(models.Model):
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
     #tags = models.CharField(max_length=100)
     tags = models.ManyToManyField(Tag, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='problems')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='problems')
 
     def __str__(self):
         return self.title
