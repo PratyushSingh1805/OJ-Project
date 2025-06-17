@@ -4,9 +4,9 @@
   <h2>Submit Solution</h2>
 
   <div class="row">
-    <!-- Left Column: Code + Submit + AI Review -->
+    <!-- Left Column: Code + Submit -->
     <div class="col-md-8">
-      <form method="post">
+      <form method="post" id="code-form">
         {% csrf_token %}
         <div class="mb-3">
           <label>Language:</label>
@@ -27,14 +27,11 @@
         <div id="editor" style="height: 400px; border: 1px solid #ccc;"></div>
         <input type="hidden" id="code" name="code">
 
-        <button type="submit" class="btn btn-success mt-3">Submit</button>
+        <div class="d-flex justify-content-between mt-3">
+          <button type="submit" class="btn btn-success">Submit</button>
+          <button type="button" class="btn btn-info" onclick="reviewCode()">Get AI Review</button>
+        </div>
       </form>
-
-      <h4 class="mt-5">AI Review</h4>
-      <button class="btn btn-info" onclick="reviewCode()">Get AI Review</button>
-      <div id="review-output" class="mt-3">
-        <pre style="white-space: pre-wrap; word-break: break-word; overflow-x: hidden; overflow-y: auto; max-height: 400px;" class="p-3 border bg-light rounded w-100"></pre>
-      </div>
     </div>
 
     <!-- Right Column: Live I/O -->
@@ -52,8 +49,16 @@
 
       <div class="mb-3">
         <label>Sample Output:</label>
-        <pre id="output-box" class="bg-light border p-3" style="min-height: 120px;"></pre>
+        <textarea id="output-box" class="form-control" rows="6" readonly style="min-height: 120px; resize: none;"></textarea>
       </div>
+    </div>
+  </div>
+
+  <!-- Full-width AI Review Section -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <label>AI Review:</label>
+      <textarea id="review-output" class="form-control" rows="8" readonly style="resize: none; white-space: pre-wrap; word-break: break-word;"></textarea>
     </div>
   </div>
 </div>
@@ -84,7 +89,7 @@
       minimap: { enabled: false }
     });
 
-    document.querySelector('form').addEventListener('submit', function () {
+    document.getElementById("code-form").addEventListener('submit', function () {
       document.getElementById("code").value = editor.getValue();
     });
 
@@ -97,19 +102,25 @@
     themeToggle.addEventListener("change", () => {
       const isDark = themeToggle.checked;
       monaco.editor.setTheme(isDark ? "vs-dark" : "vs");
-
-      // Apply full-page dark mode via body class
       document.body.classList.toggle("dark-mode", isDark);
     });
 
-    // Trigger theme toggle on load
+    // Initialize theme
     themeToggle.dispatchEvent(new Event('change'));
   });
+
+  function renderMarkdown(text) {
+    // Convert markdown to plain text (remove formatting)
+    return text
+      .replace(/\*\*/g, '')  // Remove **
+      .replace(/\*/g, '')     // Remove *
+      .replace(/`/g, '');     // Remove `
+  }
 
   function reviewCode() {
     const code = editor.getValue();
     const output = document.getElementById("review-output");
-    output.innerHTML = "Reviewing...";
+    output.value = "Reviewing...";
 
     fetch("{% url 'ai_review' %}", {
       method: "POST",
@@ -121,10 +132,10 @@
     })
     .then(response => response.json())
     .then(data => {
-      output.innerHTML = `<pre>${data.review}</pre>`;
+      output.value = renderMarkdown(data.review);
     })
     .catch(error => {
-      output.innerHTML = "Something went wrong.";
+      output.value = "Something went wrong.";
     });
   }
 
@@ -134,7 +145,7 @@
     const custom_input = document.getElementById("custom_input").value;
     const outputBox = document.getElementById("output-box");
 
-    outputBox.innerText = "Running...";
+    outputBox.value = "Running...";
 
     fetch("{% url 'run_code_ajax' %}", {
       method: "POST",
@@ -146,11 +157,27 @@
     })
     .then(response => response.json())
     .then(data => {
-      outputBox.innerText = data.output;
+      outputBox.value = data.output;
     })
     .catch(error => {
-      outputBox.innerText = "Error while running code.";
+      outputBox.value = "Error while running code.";
     });
   }
 </script>
+
+<style>
+  .dark-mode {
+    background-color: #1a202c;
+    color: #f8f9fa;
+  }
+  .dark-mode .form-control, .dark-mode .form-select {
+    background-color: #2d3748 !important;
+    color: #f8f9fa !important;
+    border-color: #4a5568 !important;
+  }
+  .dark-mode .btn-info {
+    background-color: #3182ce;
+    border-color: #3182ce;
+  }
+</style>
 {% endblock %}
