@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Problem Set</h2>
+
+    <!-- Filters -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="q" placeholder="Search by title..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="difficulty">
+                <option value="">All Difficulties</option>
+                <option value="Easy" {% if difficulty_filter == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if difficulty_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if difficulty_filter == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="tag">
+                <option value="">All Tags</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.name }}" {% if tag_filter == tag.name %}selected{% endif %}>{{ tag.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <table class="table table-hover table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Difficulty</th>
+                <th>Tags</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for problem in problems %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <a href="{% url 'problem-detail' problem.pk %}" class="text-decoration-none text-dark fw-semibold">
+                        {{ problem.title }}
+                    </a>
+                </td>
+                <td>
+                    {% if problem.difficulty == 'Easy' %}
+                        <span class="badge bg-success">Easy</span>
+                    {% elif problem.difficulty == 'Medium' %}
+                        <span class="badge bg-warning text-dark">Medium</span>
+                    {% elif problem.difficulty == 'Hard' %}
+                        <span class="badge bg-danger">Hard</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Unknown</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% for tag in problem.tags.all %}
+                        <span class="tag">{{ tag.name }}</span>
+                    {% empty %}
+                        <span class="text-muted">No tags</span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .tag {
+        background-color: #e0e0e0;
+        border-radius: 12px;
+        padding: 2px 10px;
+        margin-right: 5px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}

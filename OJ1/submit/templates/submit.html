@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="content-wrapper">
+  <h2>Submit Solution</h2>
+
+  <div class="row">
+    <!-- Left Column: Code + Submit -->
+    <div class="col-md-8">
+      <form method="post" id="code-form">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label>Language:</label>
+          <select id="language" name="language" class="form-select">
+            <option value="py">Python</option>
+            <option value="cpp">C++</option>
+          </select>
+        </div>
+
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+          <label>Code:</label>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="theme-toggle" checked>
+            <label class="form-check-label" for="theme-toggle">Dark Mode</label>
+          </div>
+        </div>
+
+        <div id="editor" style="height: 400px; border: 1px solid #ccc;"></div>
+        <input type="hidden" id="code" name="code">
+
+        <div class="d-flex justify-content-between mt-3">
+          <button type="submit" class="btn btn-success">Submit</button>
+          <button type="button" class="btn btn-info" onclick="reviewCode()">Get AI Review</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Column: Live I/O -->
+    <div class="col-md-4">
+      <h5 class="mb-3">Live Compiler</h5>
+
+      <div class="mb-3">
+        <label for="custom_input">Sample Input:</label>
+        <textarea id="custom_input" class="form-control" rows="6" placeholder="Enter input..."></textarea>
+      </div>
+
+      <div class="mb-3">
+        <button type="button" class="btn btn-success" onclick="runCode()">Run Code</button>
+      </div>
+
+      <div class="mb-3">
+        <label>Sample Output:</label>
+        <textarea id="output-box" class="form-control" rows="6" readonly style="min-height: 120px; resize: none;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-width AI Review Section -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <label>AI Review:</label>
+      <textarea id="review-output" class="form-control" rows="8" readonly style="resize: none; white-space: pre-wrap; word-break: break-word;"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Monaco + Logic -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+<script>
+  let editor;
+  const templates = {
+    py: `def main():\n    # Write your code here\n    pass\n\nif __name__ == "__main__":\n    main()`,
+    cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // Write your code here\n    return 0;\n}`
+  };
+
+  require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+  require(['vs/editor/editor.main'], function () {
+    const langSelect = document.getElementById("language");
+    const themeToggle = document.getElementById("theme-toggle");
+
+    const getTheme = () => themeToggle.checked ? "vs-dark" : "vs";
+    const getLang = () => langSelect.value;
+
+    editor = monaco.editor.create(document.getElementById("editor"), {
+      value: templates[getLang()],
+      language: getLang() === 'cpp' ? 'cpp' : 'python',
+      theme: getTheme(),
+      automaticLayout: true,
+      fontSize: 14,
+      minimap: { enabled: false }
+    });
+
+    document.getElementById("code-form").addEventListener('submit', function () {
+      document.getElementById("code").value = editor.getValue();
+    });
+
+    langSelect.addEventListener("change", () => {
+      const newLang = getLang();
+      const model = monaco.editor.createModel(templates[newLang], newLang === 'cpp' ? 'cpp' : 'python');
+      editor.setModel(model);
+    });
+
+    themeToggle.addEventListener("change", () => {
+      const isDark = themeToggle.checked;
+      monaco.editor.setTheme(isDark ? "vs-dark" : "vs");
+      document.body.classList.toggle("dark-mode", isDark);
+    });
+
+    // Initialize theme
+    themeToggle.dispatchEvent(new Event('change'));
+  });
+
+  function renderMarkdown(text) {
+    // Convert markdown to plain text (remove formatting)
+    return text
+      .replace(/\*\*/g, '')  // Remove **
+      .replace(/\*/g, '')     // Remove *
+      .replace(/`/g, '');     // Remove `
+  }
+
+  function reviewCode() {
+    const code = editor.getValue();
+    const output = document.getElementById("review-output");
+    output.value = "Reviewing...";
+
+    fetch("{% url 'ai_review' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ code })
+    })
+    .then(response => response.json())
+    .then(data => {
+      output.value = renderMarkdown(data.review);
+    })
+    .catch(error => {
+      output.value = "Something went wrong.";
+    });
+  }
+  function runCode() {
+  const code = editor.getValue();
+  const language = document.getElementById("language").value;
+  const custom_input = document.getElementById("custom_input").value;
+  const outputBox = document.getElementById("output-box");
+
+  outputBox.value = "Running...";
+
+  fetch("{% url 'run_code_ajax' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify({ code, language, custom_input })
+  })
+  .then(response => response.json())
+  .then(data => {
+    const verdict = data.verdict || "";
+    const output = data.output || "";
+
+    let displayText = "";
+
+    if (verdict === "Compilation Error") {
+      displayText = "🛠️ Compilation Error";
+    } else if (verdict === "Runtime Error") {
+      displayText = "💥 Runtime Error";
+    } else if (verdict === "Time Limit Exceeded") {
+      displayText = "⏳ Time Limit Exceeded";
+    } else if (verdict === "Error") {
+      displayText = "❌ Unknown Error:";
+    } else {
+      displayText = output;
+    }
+
+    outputBox.value = displayText;
+  })
+  .catch(error => {
+    outputBox.value = "Request failed: " + error;
+  });
+}
+
+  
+</script>
+
+<style>
+  .dark-mode {
+    background-color: #1a202c;
+    color: #f8f9fa;
+  }
+  .dark-mode .form-control, .dark-mode .form-select {
+    background-color: #2d3748 !important;
+    color: #f8f9fa !important;
+    border-color: #4a5568 !important;
+  }
+  .dark-mode .btn-info {
+    background-color: #3182ce;
+    border-color: #3182ce;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% comment %} widgets/custom_file_input.html {% endcomment %}
+<div>
+    <input type="{{ widget.type }}" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
+    {% if not widget.required %}
+        <div class="form-check mt-1">
+            <input class="form-check-input" type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
+            <label class="form-check-label" for="{{ widget.checkbox_id }}">
+                Remove image
+            </label>
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <!-- Verdict Summary -->
+  <div class="alert {% if submission.verdict == 'Accepted' %}alert-success{% elif submission.verdict == 'Wrong Answer' %}alert-danger{% else %}alert-warning{% endif %}">
+    <strong>Verdict:</strong> {{ submission.verdict }}<br>
+    <strong>Language:</strong> {{ submission.language|upper }} |
+    <strong>Submitted At:</strong> {{ submission.submitted_at|date:"Y-m-d H:i" }}
+  </div>
+
+  <!-- Problem Info -->
+  <h4 class="mt-3">
+  <span class="fw-semibold">Problem:</span>
+  <span class="ms-2">
+    <a href="{% url 'problem-detail' submission.problem.id %}" class="text-decoration-none text-dark">
+      {{ submission.problem.title }}
+    </a>
+  </span>
+  <span class="badge ms-2 bg-{% if submission.problem.difficulty == 'Easy' %}success
+                             {% elif submission.problem.difficulty == 'Medium' %}warning text-dark
+                             {% else %}danger{% endif %}">
+    {{ submission.problem.difficulty }}
+  </span>
+</h4>
+
+
+  <!-- Code Display -->
+  <h5 class="mt-4">Your Code:</h5>
+  <pre class="bg-dark text-light p-3 rounded" style="white-space: pre-wrap;">{{ submission.code }}</pre>
+
+  <!-- Test Case Breakdown (Always Show) -->
+  <h5 class="mt-4">Test Case Results:</h5>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Test #</th>
+        <th>Status</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for case in test_cases %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>
+          {% if case.verdict == "Accepted" %}
+            <span class="text-success">✅ Accepted</span>
+          {% elif case.verdict == "Wrong Answer" %}
+            <span class="text-danger">❌ Wrong Answer</span>
+          {% elif case.verdict == "Time Limit Exceeded" %}
+            <span class="text-warning">⏳ TLE</span>
+          {% elif case.verdict == "Runtime Error" %}
+            <span class="text-danger">💥 Runtime Error</span>
+          {% else %}
+            <span class="text-secondary">{{ case.verdict }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if case.verdict == "Wrong Answer" %}
+            <strong>Input:</strong> <pre>{{ case.input_data }}</pre>
+            <strong>Expected:</strong> {{ case.expected_output }}<br>
+            <strong>Your Output:</strong> {{ case.user_output }}
+          {% endif %}
+          {% if case.verdict == "Accepted" %}
+            <strong>Testcase Passed</strong>
+          {% endif %}
+          {% if case.verdict != "Accepted" and case.verdict != "Wrong Answer"%}
+            <strong>Please review your code and try again</strong>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Navigation Buttons -->
+  <div class="mt-4">
+    <a href="{% url 'problem-detail' submission.problem.id %}" class="btn btn-primary">Back to Problem</a>
+    <a href="{% url 'submit_code' submission.problem.id %}" class="btn btn-success">Submit Again</a>
+  </div>
+
+</div>
+{% endblock %}

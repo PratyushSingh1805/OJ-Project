@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Your Submissions</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Problem</th>
+      <th>Verdict</th>
+      <th>Language</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for sub in submissions %}
+    <tr>
+      <td>{{ sub.problem.title }}</td>
+      <td>{{ sub.verdict }}</td>
+      <td>{{ sub.language }}</td>
+      <td>{{ sub.submitted_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

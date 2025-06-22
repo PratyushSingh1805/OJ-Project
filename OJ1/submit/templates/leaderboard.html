@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Leaderboard</h2>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>User</th>
+      <th>Problems Solved</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in leaderboard %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ user.user__username }}</td>
+      <td>{{ user.score }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
