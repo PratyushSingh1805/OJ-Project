@@ -48,13 +48,13 @@ OJ1/
 
 ## 🔗 Live Preview
 
-> 🚧 Hosted on AWS EC2 (Demo link coming soon!)
+>  Hosted on AWS EC2
+>  [Live Online Judge](http://13.234.76.251:8000)
 
 ---
 
 ## 🎥 Demo Video
-
-> 📽️ (Demo Video link Coming soon!)
+> 📽️ [Demo Video Link](https://drive.google.com/file/d/1SAB04f_7AeEsIglBbemi3V-FAVJD0H-q/view?usp=drive_link)
 
 ---
 💡 Contributions
