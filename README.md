@@ -49,7 +49,7 @@ OJ1/
 ## 🔗 Live Preview
 
 >  Hosted on AWS EC2
->  [Live Online Judge](http://13.234.76.251:8000)
+>  [https://www.gaveloj.me](https://www.gaveloj.me)
 
 ---
 
